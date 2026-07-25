@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AssistantPlugin</string>
+    <string name="accessibility_service_label">Assistant Accessibility Service</string>
+    <string name="accessibility_service_description">An accessibility service for the Assistant Plugin</string>
+</resources>

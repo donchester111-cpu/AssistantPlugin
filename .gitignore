@@ -1,0 +1,44 @@
+# Gradle files
+.gradle/
+build/
+*.apk
+*.aar
+*.ap_
+
+# Local configuration file
+local.properties
+
+# Log/OS Files
+*.log
+Thumbs.db
+.DS_Store
+
+# Android Studio generated files and folders
+.idea/
+.gradle
+build/
+*.iml
+*.apk
+*.class
+*.dex
+*.jar
+*.pro
+*.zip
+
+# IntelliJ
+*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/vcs.xml
+.idea/jsLibExports.json
+.idea/.name
+.idea/modules.xml
+.idea/runConfigurations.xml
+.idea/caches/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
