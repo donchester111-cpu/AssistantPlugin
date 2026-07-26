@@ -189,27 +189,31 @@ public class AssistantPlugin {
 
         releaseTts();
 
-        tts = new TextToSpeech(context, status -> {
-            ttsReady = status == TextToSpeech.SUCCESS;
+        tts = new TextToSpeech(context,
+                new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(int status) {
+                        ttsReady = status == TextToSpeech.SUCCESS;
 
-            if (ttsReady) {
-                int result =
-                        tts.setLanguage(Locale.getDefault());
+                        if (ttsReady) {
+                            int result =
+                                    tts.setLanguage(Locale.getDefault());
 
-                if (result == TextToSpeech.LANG_MISSING_DATA ||
-                        result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    lastError = "Default language is unavailable.";
-                    emitEvent("error",
-                            jsonObject("message", lastError));
-                }
+                            if (result == TextToSpeech.LANG_MISSING_DATA ||
+                                    result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                lastError = "Default language is unavailable.";
+                                emitEvent("error",
+                                        jsonObject("message", lastError));
+                            }
 
-                emitEvent("tts_ready", "{}");
-            } else {
-                lastError = "TTS failed.";
-                emitEvent("error",
-                        jsonObject("message", lastError));
-            }
-        });
+                            emitEvent("tts_ready", "{}");
+                        } else {
+                            lastError = "TTS failed.";
+                            emitEvent("error",
+                                    jsonObject("message", lastError));
+                        }
+                    }
+                });
 
         if (tts != null) {
             tts.setOnUtteranceProgressListener(
@@ -278,30 +282,39 @@ public class AssistantPlugin {
 
         pendingUtterances.put(id, text);
 
-        mainHandler.post(() -> {
-            try {
-                tts.setSpeechRate(rate);
-                tts.setPitch(pitch);
+        final String speechText = text;
+        final String utteranceId = id;
+        final float speechRate = rate;
+        final float speechPitch = pitch;
+        final boolean addToQueue = queue;
 
-                Bundle params = new Bundle();
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    tts.setSpeechRate(speechRate);
+                    tts.setPitch(speechPitch);
 
-                params.putString(
-                        TextToSpeech.Engine
-                                .KEY_PARAM_UTTERANCE_ID,
-                        id);
+                    Bundle params = new Bundle();
 
-                tts.speak(
-                        text,
-                        queue
-                                ? TextToSpeech.QUEUE_ADD
-                                : TextToSpeech.QUEUE_FLUSH,
-                        params,
-                        id);
+                    params.putString(
+                            TextToSpeech.Engine
+                                    .KEY_PARAM_UTTERANCE_ID,
+                            utteranceId);
 
-            } catch (Exception e) {
-                lastError = e.getMessage();
-                emitEvent("error",
-                        jsonObject("message", lastError));
+                    tts.speak(
+                            speechText,
+                            addToQueue
+                                    ? TextToSpeech.QUEUE_ADD
+                                    : TextToSpeech.QUEUE_FLUSH,
+                            params,
+                            utteranceId);
+
+                } catch (Exception e) {
+                    lastError = e.getMessage();
+                    emitEvent("error",
+                            jsonObject("message", lastError));
+                }
             }
         });
 
@@ -310,13 +323,16 @@ public class AssistantPlugin {
 
     public void stopSpeaking() {
         if (tts != null && mainHandler != null) {
-            mainHandler.post(() -> {
-                try {
-                    tts.stop();
-                } catch (Exception ignored) {
-                } finally {
-                    ttsSpeaking = false;
-                    pendingUtterances.clear();
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        tts.stop();
+                    } catch (Exception ignored) {
+                    } finally {
+                        ttsSpeaking = false;
+                        pendingUtterances.clear();
+                    }
                 }
             });
         }
@@ -356,25 +372,28 @@ public class AssistantPlugin {
 
         continuousListening = continuous;
 
-        mainHandler.post(() -> {
-            try {
-                listening = true;
-                speechRecognizer.startListening(speechIntent);
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    listening = true;
+                    speechRecognizer.startListening(speechIntent);
 
-                emitEvent(
-                        "speech_listen_start",
-                        jsonObject(
-                                "continuous",
-                                String.valueOf(
-                                        continuousListening)));
+                    emitEvent(
+                            "speech_listen_start",
+                            jsonObject(
+                                    "continuous",
+                                    String.valueOf(
+                                            continuousListening)));
 
-            } catch (Exception e) {
-                listening = false;
-                lastError = e.getMessage();
+                } catch (Exception e) {
+                    listening = false;
+                    lastError = e.getMessage();
 
-                emitEvent(
-                        "speech_error",
-                        jsonObject("message", lastError));
+                    emitEvent(
+                            "speech_error",
+                            jsonObject("message", lastError));
+                }
             }
         });
 
@@ -388,11 +407,14 @@ public class AssistantPlugin {
         if (speechRecognizer != null &&
                 mainHandler != null) {
 
-            mainHandler.post(() -> {
-                try {
-                    speechRecognizer.stopListening();
-                    speechRecognizer.cancel();
-                } catch (Exception ignored) {
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        speechRecognizer.stopListening();
+                        speechRecognizer.cancel();
+                    } catch (Exception ignored) {
+                    }
                 }
             });
         }
@@ -589,16 +611,19 @@ public class AssistantPlugin {
     }
 
     private void restartListeningSoon() {
-        mainHandler.postDelayed(() -> {
-            if (continuousListening &&
-                    speechRecognizer != null) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (continuousListening &&
+                        speechRecognizer != null) {
 
-                try {
-                    speechRecognizer.cancel();
-                    speechRecognizer.startListening(
-                            speechIntent);
-                    listening = true;
-                } catch (Exception ignored) {
+                    try {
+                        speechRecognizer.cancel();
+                        speechRecognizer.startListening(
+                                speechIntent);
+                        listening = true;
+                    } catch (Exception ignored) {
+                    }
                 }
             }
         }, 350);
@@ -1257,23 +1282,26 @@ public class AssistantPlugin {
         final String taskAction = action;
         final String taskPayload = payload;
 
-        Runnable runnable = () -> {
-            if (isAttached()) {
-                String result =
-                        execute(
-                                taskAction,
-                                taskPayload);
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isAttached()) {
+                    String result =
+                            execute(
+                                    taskAction,
+                                    taskPayload);
 
-                emitEvent(
-                        "scheduled_task_executed",
-                        jsonObject(
-                                "id",
-                                taskId,
-                                "result",
-                                result));
+                    emitEvent(
+                            "scheduled_task_executed",
+                            jsonObject(
+                                    "id",
+                                    taskId,
+                                    "result",
+                                    result));
+                }
+
+                scheduledTasks.remove(taskId);
             }
-
-            scheduledTasks.remove(taskId);
         };
 
         scheduledTasks.put(taskId, runnable);
@@ -1849,20 +1877,24 @@ public class AssistantPlugin {
             return "{\"error\":\"Empty fact\"}";
         }
 
-        String id =
+        final String id =
                 UUID.randomUUID().toString();
 
         synchronized (memoryStore) {
             memoryStore.put(id, fact);
         }
 
-        new Thread(() -> {
-            String result =
-                    embedText(fact);
+        final String rememberedFact = fact;
 
-            try {
-                JSONObject obj =
-                        new JSONObject(result);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String result =
+                        embedText(rememberedFact);
+
+                try {
+                    JSONObject obj =
+                            new JSONObject(result);
 
                 JSONArray embArray =
                         obj.optJSONArray(
