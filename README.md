@@ -1,68 +1,29 @@
 # AssistantPlugin
 
-An Android Accessibility Service plugin that demonstrates how to intercept and handle accessibility events.
+Android/AIDE project for `com.godwin.assistant`.
 
-## Project Structure
+## Import into AIDE
 
-```
-AssistantPlugin/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/
-│   │   │   │       └── godwin/
-│   │   │   │           └── assistant/
-│   │   │   │               └── AssistantPlugin.java
-│   │   │   ├── res/
-│   │   │   │   ├── values/
-│   │   │   │   │   ├── strings.xml
-│   │   │   │   │   ├── colors.xml
-│   │   │   │   │   └── themes.xml
-│   │   │   │   └── xml/
-│   │   │   │       └── accessibility_service_config.xml
-│   │   │   └── AndroidManifest.xml
-│   │   └── ...
-│   ├── build.gradle
-│   └── proguard-rules.pro
-├── build.gradle
-├── settings.gradle
-├── .gitignore
-└── README.md
-```
+1. Download and extract this project.
+2. Open/import the extracted `AssistantPlugin` folder in AIDE.
+3. Let Gradle sync.
+4. Build the project.
 
-## Features
+## Important
 
-- Accessibility Service implementation
-- Event handling for window state changes, view clicks, and text changes
-- Logging functionality for debugging
-- Proper AndroidManifest configuration
+The project contains two separate Java classes:
 
-## Requirements
+- `AssistantPlugin.java`
+- `AssistantAccessibilityService.java`
 
-- Android SDK 21 or higher
-- Android Studio 4.0 or higher
-- Java 8 or higher
+The package is:
 
-## Getting Started
+`com.godwin.assistant`
 
-1. Clone the repository
-2. Open the project in Android Studio
-3. Build and run the application
-4. Enable the accessibility service in device settings
+The project includes the AndroidX dependencies required by the plugin.
 
-## Building
+The original Sherpa-ONNX/KittenTTS section was not blindly included because the Java API differs between Sherpa-ONNX AAR versions. Add the exact AAR version you are using before wiring that feature back in.
 
-```bash
-./gradlew build
-```
+Screen capture also requires Android MediaProjection permission. The accessibility service does not pretend that an arbitrary VirtualDisplay is a valid screenshot source.
 
-## Installation
-
-```bash
-./gradlew installDebug
-```
-
-## License
-
-MIT License
+The rest of the plugin architecture and action bridge is preserved.
