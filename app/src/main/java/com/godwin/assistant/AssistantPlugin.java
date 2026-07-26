@@ -1922,6 +1922,7 @@ public class AssistantPlugin {
                                 .put(id, vec);
                     }
                 }
+                }
 
             } catch (Exception e) {
                 Log.e(
