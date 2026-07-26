@@ -3,6 +3,7 @@ package com.godwin.assistant;
 import android.Manifest;
 import android.app.Activity;
 import android.app.NotificationChannel;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.usage.UsageStats;
@@ -34,8 +35,6 @@ import android.telephony.SmsManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -74,6 +73,9 @@ public class AssistantPlugin {
     private String lastError = "";
     private String lastSpeechText = "";
     private String notificationChannelId = "assistant_core";
+
+    private static final String POST_NOTIFICATIONS_PERMISSION =
+            "android.permission.POST_NOTIFICATIONS";
 
     private final Map<String, String> pendingUtterances =
             new HashMap<>();
@@ -634,9 +636,9 @@ public class AssistantPlugin {
         }
 
         if (Build.VERSION.SDK_INT >=
-                Build.VERSION_CODES.TIRAMISU &&
+                33 &&
                 !hasPermission(
-                        Manifest.permission.POST_NOTIFICATIONS)) {
+                        POST_NOTIFICATIONS_PERMISSION)) {
 
             lastError =
                     "Missing POST_NOTIFICATIONS.";
@@ -645,8 +647,7 @@ public class AssistantPlugin {
                     "permission_missing",
                     jsonObject(
                             "permission",
-                            Manifest.permission
-                                    .POST_NOTIFICATIONS));
+                            POST_NOTIFICATIONS_PERMISSION));
 
             return false;
         }
@@ -675,23 +676,24 @@ public class AssistantPlugin {
                     flags);
         }
 
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(
-                        context,
-                        notificationChannelId)
-                        .setSmallIcon(
-                                android.R.drawable
-                                        .ic_dialog_info)
-                        .setContentTitle(title)
-                        .setContentText(message)
-                        .setStyle(
-                                new NotificationCompat
-                                        .BigTextStyle()
-                                        .bigText(message))
-                        .setAutoCancel(true)
-                        .setPriority(
-                                NotificationCompat
-                                        .PRIORITY_HIGH);
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= 26) {
+            builder = new Notification.Builder(
+                    context,
+                    notificationChannelId);
+        } else {
+            builder = new Notification.Builder(context);
+        }
+
+        builder.setSmallIcon(
+                        android.R.drawable.ic_dialog_info)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setStyle(
+                        new Notification.BigTextStyle()
+                                .bigText(message))
+                .setAutoCancel(true)
+                .setPriority(Notification.PRIORITY_HIGH);
 
         if (pi != null) {
             builder.setContentIntent(pi);
@@ -1443,9 +1445,7 @@ public class AssistantPlugin {
             return true;
         }
 
-        return ContextCompat.checkSelfPermission(
-                context,
-                permission) ==
+        return context.checkSelfPermission(permission) ==
                 PackageManager.PERMISSION_GRANTED;
     }
 
@@ -1460,14 +1460,12 @@ public class AssistantPlugin {
             }
 
             if (Build.VERSION.SDK_INT >=
-                    Build.VERSION_CODES.TIRAMISU &&
+                    33 &&
                     !hasPermission(
-                            Manifest.permission
-                                    .POST_NOTIFICATIONS)) {
+                            POST_NOTIFICATIONS_PERMISSION)) {
 
                 arr.put(
-                        Manifest.permission
-                                .POST_NOTIFICATIONS);
+                        POST_NOTIFICATIONS_PERMISSION);
             }
 
             if (!hasPermission(
